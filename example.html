@@ -272,8 +272,8 @@ All the interesting stuff in the code is tagged under "TAKEALOOK" comments`
 			overflow: hidden;
 		}
 
-		.inline-block {
-			display: inline-block;
+		.hidden {
+			display: none;
 		}
 
 		#canvas {
@@ -286,6 +286,7 @@ All the interesting stuff in the code is tagged under "TAKEALOOK" comments`
 			outline: none;
 			image-rendering: optimizeSpeed;
 		}
+
 		#form {
 			position: fixed;
 			bottom: 0;
@@ -294,11 +295,17 @@ All the interesting stuff in the code is tagged under "TAKEALOOK" comments`
 			padding: 0.5em;
 			background: #ffffffaa;
 		}
-		#form.hidden {
-			display: none;
+		#form > * {
+			display: inline-block;
+		}
+		#form fieldset {
+			width: fit-content;
+		}
+		#form input[name="vw"] {
+			width: 7ch;
 		}
 
-		#toggleFormBtn {
+		div.top {
 			position: fixed;
 		}
 
@@ -308,24 +315,18 @@ All the interesting stuff in the code is tagged under "TAKEALOOK" comments`
 		#form:hover, #toggleFormBtn:hover {
 			opacity: 1;
 		}
-
-		#form > fieldset {
-			width: fit-content;
-		}
-		input[name="vw"] {
-			width: 7ch;
-		}
 	</style>
 </head>
 
 <body>
 	<canvas id="canvas" tabindex="0"></canvas>
-	<input type="button" id="toggleFormBtn" value="Show/hide options">
+	<div class="top">
+		<input type="button" id="toggleFormBtn" value="Show/hide options">
+		<a href="https://github.com/idontcares31249/World2Viewport-js/blob/main/example.html">Source on github</a>
+	</div>
 	<form id="form">
-		<a class="inline-block" href="https://github.com/idontcares31249/World2Viewport-js/blob/main/example.html">Source on github</a>
-		<label>View scale: <input type="number" name="vw" value="4" step="0.2" min="0.2"></label>
+		<label>View scale: <input type="number" name="vw" value="4" step="0.2" min="0.0"></label>
 		<input type="button" id="centerBtn" value="Center">
-		<output id="log"></output>
 		<fieldset>
 			<legend>Sizing</legend>
 			<label><input type="radio" name="sizing" value="cover" checked> Cover</label>
@@ -334,6 +335,7 @@ All the interesting stuff in the code is tagged under "TAKEALOOK" comments`
 			<label><input type="radio" name="sizing" value="vertical"> Vertical</label>
 			<label><input type="radio" name="sizing" value="stretch"> Stretch</label>
 		</fieldset>
+		<output id="log"></output>
 	</form>
 </body>
 
