@@ -12,6 +12,7 @@
  * @prop {number} viewportWidth
  * @prop {number} viewportHeight
  * @prop {Sizing=} sizing
+ * @prop {boolean=} vert This parameter has effect only in `*To*Length` functions in stretch sizing
  */
 
 /**
@@ -26,7 +27,7 @@
  */
 export function worldToViewport(x, y, vx, vy, vw, vpParams) {
 	const
-		{ viewportWidth, viewportHeight, sizing } = vpParams;
+		{ viewportWidth, viewportHeight } = vpParams;
 	let
 		[sx, sy] = determineScale(vw, vpParams),
 		rx = x, ry = y;
@@ -57,7 +58,7 @@ export function worldToViewport(x, y, vx, vy, vw, vpParams) {
  */
 export function viewportToWorld(x, y, vx, vy, vw, vpParams) {
 	const
-		{ viewportWidth, viewportHeight, sizing } = vpParams;
+		{ viewportWidth, viewportHeight } = vpParams;
 	let
 		[sx, sy] = determineScale(vw, vpParams),
 		rx = x, ry = y;
@@ -83,13 +84,12 @@ export function viewportToWorld(x, y, vx, vy, vw, vpParams) {
  * @param {number} length In meters
  * @param {number} vw View scale
  * @param {ViewportParameters} vpParams
- * @param vert This flag has effect only in stretch sizing
  * @returns {number} In pixels
  */
-export function worldToViewportLength(length, vw, vpParams, vert = false) {
+export function worldToViewportLength(length, vw, vpParams) {
 	let [sx, sy] = determineScale(vw, vpParams);
 	// we just need to map the value from [0 .. vw] to [0 .. viewportSize / 2]
-	return length / 2 * (vert ? vpParams.viewportHeight / sy : vpParams.viewportWidth / sx);
+	return length / 2 * (vpParams.vert ? vpParams.viewportHeight / sy : vpParams.viewportWidth / sx);
 	// hacky and a bit less performant but at least we're not duplicating the code
 }
 /**
@@ -98,13 +98,12 @@ export function worldToViewportLength(length, vw, vpParams, vert = false) {
  * @param {number} length In pixels
  * @param {number} vw View scale
  * @param {ViewportParameters} vpParams
- * @param vert This flag has effect only in stretch sizing
  * @returns {number} In meters
  */
-export function viewportToWorldLength(length, vw, vpParams, vert = false) {
+export function viewportToWorldLength(length, vw, vpParams) {
 	let [sx, sy] = determineScale(vw, vpParams);
 	// map from [0 .. viewportSize / 2] to [0 .. vw]
-	return length * 2 * (vert ? sy / vpParams.viewportHeight : sx / vpParams.viewportWidth);
+	return length * 2 * (vpParams.vert ? sy / vpParams.viewportHeight : sx / vpParams.viewportWidth);
 }
 
 // private functions:

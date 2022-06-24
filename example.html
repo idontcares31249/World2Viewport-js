@@ -19,7 +19,8 @@ class Game {
 		this.vpParams = {
 			viewportWidth: innerWidth,
 			viewportHeight: innerHeight,
-			sizing: 'cover'
+			sizing: 'cover',
+			vert: true
 		};
 		this.entities = [
 			new Box(-3.5, 0.5, 0.5, 1),
@@ -109,7 +110,7 @@ class Game {
 			this.ctx.fillStyle = '#000000';
 			this.ctx.textAlign = 'center';
 			this.ctx.textBaseline = 'top'
-			this.ctx.font = `${this.worldToViewportLength(0.2, true)}px sans`;
+			this.ctx.font = `${this.worldToViewportLength(0.2)}px sans`;
 			this.ctx.fillText('origin', ...this.worldToViewport(0, -0.05));
 	}
 
@@ -125,11 +126,11 @@ class Game {
 	viewportToWorld(x, y) {
 		return W2V.viewportToWorld(x, y, this.vx, this.vy, this.vw, this.vpParams);
 	}
-	worldToViewportLength(length, vert) {
-		return W2V.worldToViewportLength(length, this.vw, this.vpParams, vert);
+	worldToViewportLength(length) {
+		return W2V.worldToViewportLength(length, this.vw, this.vpParams);
 	}
-	viewportToWorldLength(length, vert) {
-		return W2V.viewportToWorldLength(length, this.vw, this.vpParams, vert);
+	viewportToWorldLength(length) {
+		return W2V.viewportToWorldLength(length, this.vw, this.vpParams);
 	}
 
 	// TAKEALOOK
