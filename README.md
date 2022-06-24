@@ -6,8 +6,8 @@ It may be useful in games and other apps where you need to translate the view al
 
 There are just 4 exported functions in [`index.mjs`](./index.mjs), with JSDoc documentation available:
 
-- `worldToViewport`, `viewportToWorld` to transform coordinates.
-- `worldToViewportLength`, `viewportToWorldLength` to transform length (of, say, a line segment).
+- [`worldToViewport`](./index.mjs#L28), [`viewportToWorld`](./index.mjs#L59) to transform coordinates.
+- [`worldToViewportLength`](./index.mjs#L89), [`viewportToWorldLength`](./index.mjs#L103) to transform length (of, say, a line segment).
 
 The functions take following arguments:
 
