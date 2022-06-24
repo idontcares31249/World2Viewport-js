@@ -11,7 +11,7 @@
  * @typedef ViewportParameters
  * @prop {number} viewportWidth
  * @prop {number} viewportHeight
- * @prop {Sizing=} sizing
+ * @prop {Sizing=} sizing `'cover`' is default
  * @prop {boolean=} vert This parameter has effect only in `*To*Length` functions in stretch sizing
  */
 
