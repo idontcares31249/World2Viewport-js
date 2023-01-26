@@ -1,0 +1,343 @@
+<!-- https://idontcares31249.github.io/World2Viewport-js/example.html -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>World2Viewport example</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script type="module">
+
+import * as W2V from './index.mjs';
+
+class Game {
+	constructor() {
+		this.vx = 0;
+		this.vy = 0;
+		this.vw = 4;
+		this.w2vParams = {
+			sizing: 'cover',
+			vert: true
+		};
+		this.entities = [
+			new Box(-3.5, 0.5, 0.5, 1),
+			new Box(1, 3.5, 1, 0.5),
+			new Box(0, 0, 0.1, 0.1)
+		];
+		this.cursorEntity = this.entities[this.entities.length - 1];
+		this.ctx = canvas.getContext('2d');
+		this.ctx.canvas.width = innerWidth * devicePixelRatio;
+		this.ctx.canvas.height = innerHeight * devicePixelRatio;
+
+		this._animHandle = -1;
+		this._keys = {
+			ArrowLeft: false,
+			ArrowRight: false,
+			ArrowDown: false,
+			ArrowUp: false
+		};
+	}
+
+	run() {
+		let prTs = NaN;
+		let rh = ts => {
+			let delta;
+			if (isNaN(prTs))
+				delta = 0;
+			else
+				delta = ts - prTs
+			prTs = ts;
+
+			this.tick(delta);
+
+			this._animHandle = requestAnimationFrame(rh);
+		};
+		this._animHandle = requestAnimationFrame(rh);
+
+		let kh = ev => {
+			let bool = ev.type == 'keydown';  // false for 'keyup'
+			this._keys[ev.code] = bool;
+		};
+		this.ctx.canvas.onkeydown = kh; onkeyup = kh;
+
+	}
+	stop() {
+		cancelAnimationFrame(this._animHandle);
+
+		this.ctx.canvas.onkeydown = null; onkeyup = null;
+	}
+
+	tick(delta) {
+		// camera
+		const camSpeed = 2 * delta / 1000;  // 2 m/s
+		let [x, y] = keysToVec(this._keys);
+		this.vx += camSpeed * x; this.vy += camSpeed * y;
+
+		this.render();
+	}
+	// TAKEALOOK
+	render() {
+		this.ctx.fillStyle = '#bbbbbb';
+		this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+	
+		for (let entity of this.entities)
+			entity.render();
+	
+		// drawing origin point
+			// red x-axis
+			this.ctx.beginPath();
+			this.ctx.strokeStyle = '#ff0000';
+			this.ctxMoveTo(-0.5, 0);
+			this.ctxLineTo(0.5, 0);
+			this.ctxLineTo(0.45, 0.05);
+			this.ctxMoveTo(0.5, 0);
+			this.ctxLineTo(0.45, -0.05);
+			this.ctx.stroke();
+			// green y-axis
+			this.ctx.beginPath();
+			this.ctx.strokeStyle = '#00ff00';
+			this.ctxMoveTo(0, -0.5);
+			this.ctxLineTo(0, 0.5);
+			this.ctxLineTo(0.05, 0.45);
+			this.ctxMoveTo(0, 0.5);
+			this.ctxLineTo(-0.05, 0.45);
+			this.ctx.stroke();
+			// text
+			this.ctx.fillStyle = '#000000';
+			this.ctx.textAlign = 'center';
+			this.ctx.textBaseline = 'top'
+			this.ctx.font = `${this.worldToViewportLength(0.2)}px sans`;
+			this.ctx.fillText('origin', ...this.worldToViewport(0, -0.05));
+	}
+
+// useful functions:
+	getEntityAt(x, y) {
+		return this.entities.findIndex(entity => entity.isHit(x, y));
+	}
+
+	// TAKEALOOK
+	worldToViewport(x, y) {
+		return W2V.worldToViewport(x, y, this.vx, this.vy, this.vw, this.ctx.canvas.width, this.ctx.canvas.height, this.w2vParams);
+	}
+	viewportToWorld(x, y) {
+		return W2V.viewportToWorld(x, y, this.vx, this.vy, this.vw, this.ctx.canvas.width, this.ctx.canvas.height, this.w2vParams);
+	}
+	worldToViewportLength(length) {
+		return W2V.worldToViewportLength(length, this.vw, this.ctx.canvas.width, this.ctx.canvas.height, this.w2vParams);
+	}
+	viewportToWorldLength(length) {
+		return W2V.viewportToWorldLength(length, this.vw, this.ctx.canvas.width, this.ctx.canvas.height, this.w2vParams);
+	}
+
+	// TAKEALOOK
+	ctxMoveTo(x, y) {
+		this.ctx.moveTo(...this.worldToViewport(x, y));
+	}
+	ctxLineTo(x, y) {
+		this.ctx.lineTo(...this.worldToViewport(x, y));
+	}
+
+	resizeCanvas() {
+		this.ctx.canvas.width = innerWidth * devicePixelRatio;
+		this.ctx.canvas.height = innerHeight * devicePixelRatio;
+		this.render();
+	}
+	handleCanvasClick(ev) {
+		let x = ev.offsetX * devicePixelRatio, y = ev.offsetY * devicePixelRatio;
+		let [wx, wy] = game.viewportToWorld(x, y);
+		log.value = `(${x.toFixed(0)}, ${y.toFixed(0)}) => (${wx.toFixed(2)}, ${wy.toFixed(2)}).`;
+		let inx = game.getEntityAt(wx, wy);
+		game.cursorEntity.x = wx; game.cursorEntity.y = wy;  // if it works correct, entity #0 must appear where the cursor was
+		if (inx != -1) {
+			game.entities[inx].click();
+			log.value += ` Clicked on entity #${inx}.`;
+		}
+	}
+}
+class Box {
+	constructor(x, y, sx, sy) {
+		this.x = x;
+		this.y = y;
+		this.sx = sx;
+		this.sy = sy;
+		this.color = getRandomColor();
+	}
+
+	// TAKEALOOK
+	render() {
+		let ctx = game.ctx;
+		ctx.strokeStyle = '#000000';
+		ctx.fillStyle = this.color;
+		ctx.beginPath();
+		this.ctxMoveTo(-1, -1);
+		this.ctxLineTo(+1, -1);
+		this.ctxLineTo(+1, +1);
+		this.ctxLineTo(-1, +1);
+		ctx.closePath();
+		ctx.fill();
+		this.ctxMoveTo(-0.8, -0.8);
+		this.ctxLineTo(+0.8, -0.8);
+		this.ctxLineTo(+0.8, +0.8);
+		this.ctxLineTo(-0.8, +0.8);
+		ctx.closePath();
+		this.ctxMoveTo(-0.8, -0.6);
+		this.ctxLineTo(+0.6, +0.8);
+		this.ctxMoveTo(-0.6, -0.8);
+		this.ctxLineTo(+0.8, +0.6);
+		ctx.stroke();
+	}
+
+	click() {
+		this.color = getRandomColor();
+	}
+
+	// these transform from local space to world space
+	localToWorld(x, y) {
+		let rx = x, ry = y;
+		rx *= this.sx; ry *= this.sy;
+		rx += this.x;  ry += this.y;
+		return [rx, ry];
+	}
+	ctxMoveTo(x, y) {
+		game.ctxMoveTo(...this.localToWorld(x, y));
+	}
+	ctxLineTo(x, y) {
+		game.ctxLineTo(...this.localToWorld(x, y));
+	}
+
+	isHit(x, y) {
+		return (
+			this.x - this.sx < x && x < this.x + this.sx &&
+			this.y - this.sy < y && y < this.y + this.sy
+		);
+	}
+}
+
+let game = null;
+
+// stuff
+	toggleFormBtn.onclick = ev => {
+		if (form.classList.contains('hidden'))
+			form.classList.remove('hidden');
+		else
+			form.classList.add('hidden');
+	};
+	form.onsubmit = ev => ev.preventDefault();
+	function keysToVec(keys) {
+		let x = 0, y = 0;
+		x -= keys.ArrowLeft;
+		x += keys.ArrowRight;
+		y -= keys.ArrowDown;
+		y += keys.ArrowUp;
+		return [x, y];
+	}
+	function getRandomColor() {
+		return `rgb(${Math.random() * 256}, ${Math.random() * 256}, ${Math.random() * 256})`;
+	}
+
+// entry point here
+onload = ev => {
+	game = new Game;
+	window.game = game;
+	game.run();
+
+	// events
+		onresize = game.resizeCanvas.bind(game);
+		form.oninput = ev => {
+			game.w2vParams.sizing = form.elements.sizing.value;
+			game.vw = form.elements.vw.valueAsNumber;
+		};
+		centerBtn.onclick = ev => {
+			game.vx = game.vy = 0;
+		};
+		// TAKEALOOK
+		canvas.onclick = game.handleCanvasClick.bind(game);
+
+	setTimeout(() => {  // let the page be drawn first
+		alert(
+`Use arrow keys to look around. Click stuff on the canvas.
+Try changing settings below.
+Try changing window size.
+All the interesting stuff in the code is tagged under "TAKEALOOK" comments`
+		);
+	}, 50);
+};
+
+	</script>
+	<style>
+		* {
+			user-select: none;
+		}
+		body {
+			overflow: hidden;
+		}
+
+		.hidden {
+			display: none;
+		}
+
+		#canvas {
+			position: fixed;
+			top: 0;
+			left: 0;
+			box-sizing: border-box;
+			width: 100%;
+			height: 100%;
+			outline: none;
+			image-rendering: optimizeSpeed;
+		}
+
+		#form {
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			width: 100%;
+			padding: 0.5em;
+			background: #ffffffaa;
+		}
+		#form > * {
+			display: inline-block;
+		}
+		#form fieldset {
+			width: fit-content;
+		}
+		#form input[name="vw"] {
+			width: 7ch;
+		}
+
+		div.top {
+			position: fixed;
+		}
+
+		#form, #toggleFormBtn {
+			opacity: .7;
+		}
+		#form:hover, #toggleFormBtn:hover {
+			opacity: 1;
+		}
+	</style>
+</head>
+
+<body>
+	<canvas id="canvas" tabindex="0"></canvas>
+	<div class="top">
+		<input type="button" id="toggleFormBtn" value="Show/hide options">
+		<a href="https://github.com/idontcares31249/World2Viewport-js/blob/main/example.html">Source on github</a>
+	</div>
+	<form id="form">
+		<label>View scale: <input type="number" name="vw" value="4" step="0.2" min="0.0"></label>
+		<input type="button" id="centerBtn" value="Center">
+		<fieldset>
+			<legend>Sizing</legend>
+			<label><input type="radio" name="sizing" value="cover" checked> Cover</label>
+			<label><input type="radio" name="sizing" value="contain"> Contain</label>
+			<label><input type="radio" name="sizing" value="horizontal"> Horizontal</label>
+			<label><input type="radio" name="sizing" value="vertical"> Vertical</label>
+			<label><input type="radio" name="sizing" value="stretch"> Stretch</label>
+		</fieldset>
+		<output id="log"></output>
+	</form>
+</body>
+
+</html>
